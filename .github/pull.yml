@@ -1,0 +1,11 @@
+version: "1"
+rules:
+  - base: main
+    upstream: quangnguyen30192:main    # change `wei` to the owner of upstream repo
+    mergeMethod: merge
+    assignees:              # Optional
+      - lu5je0
+    reviewers:              # Optional
+      - lu5je0
+    conflictReviewers:      # Optional, on merge conflict assign a reviewer
+      - lu5je0
