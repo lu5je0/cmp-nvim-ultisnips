@@ -25,7 +25,7 @@ function source.complete(self, _, callback)
     if not snippet.options:match("[re]") then
       local item = {
         word = snippet.trigger,
-        label = snippet.trigger,
+        label = snippet.trigger .. '~',
         kind = cmp.lsp.CompletionItemKind.Snippet,
         snippet = snippet,
       }
