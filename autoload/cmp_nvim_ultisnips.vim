@@ -10,17 +10,9 @@ import vim
 from UltiSnips import UltiSnips_Manager, vim_helper
 
 expandable_only = vim.eval("a:expandable_only")
-
-is_add_postfix_snippets = False
 if expandable_only == "True":
     before = vim_helper.buf.line_till_cursor
-
     snippets = UltiSnips_Manager._snips(before, True)
-
-    if len(before) > 2 and before[-2] == ".":
-        is_add_postfix_snippets = True
-
-    print(snippets)
 else:
     snippets = UltiSnips_Manager._snips("", True)
 
@@ -35,24 +27,6 @@ for snippet in snippets:
         "'value': pyxeval('str(snippet._value)'),"\
       "})"
     )
-def add_postfix_snippets(snippet):
-    vim.command(
-      "call add(g:_cmpu_current_snippets, {"\
-        "'trigger': '" + snippet + "',"\
-        "'description': '" + snippet + "',"\
-        "'options': 'w',"\
-        "'value': 'postfix snippets',"\
-      "})"
-    )
-
-if is_add_postfix_snippets:
-    add_postfix_snippets(".for")
-    add_postfix_snippets(".log")
-    add_postfix_snippets(".if")
-    add_postfix_snippets(".par")
-    add_postfix_snippets(".arg")
-    add_postfix_snippets(".print")
-
 EOF
 return g:_cmpu_current_snippets
 endfunction
