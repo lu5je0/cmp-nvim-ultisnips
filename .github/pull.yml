@@ -1,3 +1,4 @@
+# https://pull.git.ci/check/lu5je0/cmp-nvim-ultisnips
 version: "1"
 rules:
   - base: main
