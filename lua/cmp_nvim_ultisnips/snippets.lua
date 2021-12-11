@@ -1,40 +1,53 @@
+local util = require("vim.lsp.util")
+
 local M = {}
 
-local ft_snippets_cache = {}
+-- Caches all retrieved snippets information per filetype
+local snippets_for_ft = {}
 
-function M.load()
-  if ft_snippets_cache[vim.bo.filetype] == nil then
-    vim.F.npcall(vim.call, 'UltiSnips#SnippetsInCurrentScope', 1)
-    ft_snippets_cache[vim.bo.filetype] = vim.g.current_ulti_dict_info
+function M.load_snippets(expandable_only)
+  if expandable_only then
+    -- Do not cache snippets since the set of expandable
+    -- snippets can change on every keystroke.
+    return vim.fn["cmp_nvim_ultisnips#get_current_snippets"](true)
   end
-
-  return ft_snippets_cache[vim.bo.filetype]
+  local ft = vim.bo.filetype
+  local snippets_info = snippets_for_ft[ft]
+  if not snippets_info then
+    snippets_info = vim.fn["cmp_nvim_ultisnips#get_current_snippets"](false)
+    snippets_for_ft[ft] = snippets_info
+  end
+  return snippets_info
 end
 
-function M.get_snippet_preview(user_data)
-  local filepath = string.gsub(user_data.location, '.snippets:%d*', '.snippets')
-  local _, _, linenr = string.find(user_data.location, ':(%d+)')
-  local content = vim.fn.readfile(filepath)
+function M.clear_caches()
+  snippets_for_ft = {}
+end
 
-  local snippet = {}
-  local count = 0
+function M.format_snippet_value(value)
+  local ft = vim.bo.filetype
+  -- turn \\n into \n to get "real" whitespace
+  local unescaped_value = value:gsub("\\([ntrab])", {
+    n = "\n",
+    t = "\t",
+    r = "\r",
+    a = "\a",
+    b = "\b",
+  })
+  local snippet_docs = string.format("```%s\n%s\n```", ft, unescaped_value)
+  local lines = util.convert_input_to_markdown_lines(snippet_docs)
+  return table.concat(lines, "\n")
+end
 
-  table.insert(snippet, '```' .. vim.bo.filetype)
-  for i, line in pairs(content) do
-    if i > linenr - 1 then
-      local is_snippet_header = line:find('^snippet%s[^%s]') ~= nil
-      count = count + 1
-      if line:find('^endsnippet') ~= nil or is_snippet_header and count ~= 1 then
-        break
-      end
-      if not is_snippet_header then
-        table.insert(snippet, line)
-      end
-    end
+-- Returns the documentation string shown by cmp
+function M.documentation(snippet)
+  local formatted_value = M.format_snippet_value(snippet.value)
+  if snippet.description == "" then
+    return formatted_value
   end
-  table.insert(snippet, '```')
-
-  return snippet
+  -- Italicize description
+  local description = "*" .. snippet.description .. "*"
+  return string.format("%s\n\n%s", description, formatted_value)
 end
 
 return M
