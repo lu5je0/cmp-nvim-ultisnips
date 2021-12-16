@@ -6,6 +6,11 @@ function source.new(config)
   local self = setmetatable({}, { __index = source })
   self.config = config
   self.expandable_only = config.show_snippets == "expandable"
+  if config.filetype_source == "treesitter" then
+    if require("cmp_nvim_ultisnips.treesitter").is_available() then
+      vim.fn["cmp_nvim_ultisnips#setup_treesitter_autocmds"]()
+    end
+  end
   return self
 end
 
